@@ -28,7 +28,7 @@ jobs:
 
     - name: Automatically Rebuild Clean Project Architecture
       run: |
-        flutter create . --platforms=ios --overwrite
+        flutter create . --platforms=ios --org com.example --project-name fireplace_controller --overwrite
         
     - name: Re-Inject Apple Bluetooth Privacy Keys
       run: |
@@ -75,27 +75,15 @@ jobs:
     - name: Build iOS Workspace Directory
       run: flutter build ios --release --no-codesign
 
-    - name: Standardize App Bundle Metadata Structure
+    - name: Build and Package Official undamaged IPA Structure
       run: |
-        # Force overwrite values directly onto the binary plist to fix Sideloadly metadata parsing blocks
-        /usr/libexec/PlistBuddy -c "Delete :CFBundleIdentifier" build/ios/iphoneos/Runner.app/Info.plist || true
-        /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.example.fireplaceController" build/ios/iphoneos/Runner.app/Info.plist
-        
-        /usr/libexec/PlistBuddy -c "Delete :CFBundleShortVersionString" build/ios/iphoneos/Runner.app/Info.plist || true
-        /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string 1.0.0" build/ios/iphoneos/Runner.app/Info.plist
-        
-        /usr/libexec/PlistBuddy -c "Delete :CFBundleVersion" build/ios/iphoneos/Runner.app/Info.plist || true
-        /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string 1" build/ios/iphoneos/Runner.app/Info.plist
-        
-        /usr/libexec/PlistBuddy -c "Delete :CFBundlePackageType" build/ios/iphoneos/Runner.app/Info.plist || true
-        /usr/libexec/PlistBuddy -c "Add :CFBundlePackageType string APPL" build/ios/iphoneos/Runner.app/Info.plist
-
-    - name: Package App Architecture into IPA Archive
-      run: |
+        # Create the standard structured Payload layout using safe link copying
         mkdir -p Payload
-        mv build/ios/iphoneos/Runner.app Payload/
-        zip -r FireplaceRemote.ipa Payload
+        cp -R build/ios/iphoneos/Runner.app Payload/
         
+        # Package via modern Apple system utilities to prevent extraction metadata parsing failures
+        zip -r -y FireplaceRemote.ipa Payload
+
     - name: Archive IPA Output Artifact to GitHub Dashboard
       uses: actions/upload-artifact@v4
       with:
