@@ -24,6 +24,41 @@ jobs:
       with:
         channel: 'stable'
 
+    - name: Automatically Rebuild Clean Project Architecture
+      run: |
+        flutter create . --platforms=ios --overwrite
+        
+    - name: Re-Inject Apple Bluetooth Privacy Keys
+      run: |
+        cat << 'INNER_EOF' > ios/Runner/Info.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleIdentifier</key>
+            <string>com.example.fireplaceController</string>
+            <key>CFBundleName</key>
+            <string>Fireplace</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0.0</string>
+            <key>CFBundleVersion</key>
+            <string>1</string>
+            <key>NSBluetoothAlwaysUsageDescription</key>
+            <string>This app requires Bluetooth permissions to connect and write data to your physical fireplace device controller.</string>
+            <key>NSBluetoothPeripheralUsageDescription</key>
+            <string>This app requires peripheral Bluetooth capabilities to dispatch framed control payloads to home appliances.</string>
+            <key>UILaunchStoryboardName</key>
+            <string>LaunchScreen</string>
+            <key>UISupportedInterfaceOrientations</key>
+            <array>
+                <string>UIInterfaceOrientationPortrait</string>
+            </array>
+        </dict>
+        </plist>
+        INNER_EOF
+
     - name: Fetch Library Dependencies
       run: flutter pub get
 
