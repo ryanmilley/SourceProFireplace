@@ -19,10 +19,12 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Initialize Flutter SDK
+    - name: Initialize & Cache Flutter SDK
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
+        cache: true
+        cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
 
     - name: Automatically Rebuild Clean Project Architecture
       run: |
@@ -64,6 +66,14 @@ jobs:
 
     - name: Build iOS Workspace Directory
       run: flutter build ios --release --no-codesign
+
+    - name: Standardize App Bundle Metadata Structure
+      run: |
+        # Inject required variables to prevent signing application validation errors
+        /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.example.fireplaceController" build/ios/iphoneos/Runner.app/Info.plist || /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.example.fireplaceController" build/ios/iphoneos/Runner.app/Info.plist
+        /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string 1.0.0" build/ios/iphoneos/Runner.app/Info.plist || /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.0" build/ios/iphoneos/Runner.app/Info.plist
+        /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string 1" build/ios/iphoneos/Runner.app/Info.plist || /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 1" build/ios/iphoneos/Runner.app/Info.plist
+        /usr/libexec/PlistBuddy -c "Add :CFBundlePackageType string APPL" build/ios/iphoneos/Runner.app/Info.plist || /usr/libexec/PlistBuddy -c "Set :CFBundlePackageType APPL" build/ios/iphoneos/Runner.app/Info.plist
 
     - name: Package App Architecture into IPA Archive
       run: |
