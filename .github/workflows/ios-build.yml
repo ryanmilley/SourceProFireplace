@@ -39,6 +39,8 @@ jobs:
         <dict>
             <key>CFBundleIdentifier</key>
             <string>com.example.fireplaceController</string>
+            <key>CFBundleExecutable</key>
+            <string>Runner</string>
             <key>CFBundleName</key>
             <string>Fireplace</string>
             <key>CFBundlePackageType</key>
@@ -72,16 +74,17 @@ jobs:
     - name: Fetch Library Dependencies
       run: flutter pub get
 
-    - name: Build iOS Workspace Directory
-      run: flutter build ios --release --no-codesign
-
-    - name: Build and Package Official undamaged IPA Structure
+    - name: Build Official Compiled App Binaries
       run: |
-        # Create the standard structured Payload layout using safe link copying
+        # This compiles the missing executable runner binary file
+        flutter build ios --config-only
+        xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release -sdk iphoneos OBJROOT=build/ios SYMROOT=build/ios CODE_SIGNING_ALLOWED=NO
+
+    - name: Package App Architecture into True IPA Archive
+      run: |
+        # Construct a structurally pristine Payload containing the compiled executable binary
         mkdir -p Payload
-        cp -R build/ios/iphoneos/Runner.app Payload/
-        
-        # Package via modern Apple system utilities to prevent extraction metadata parsing failures
+        cp -R build/ios/Release-iphoneos/Runner.app Payload/
         zip -r -y FireplaceRemote.ipa Payload
 
     - name: Archive IPA Output Artifact to GitHub Dashboard
