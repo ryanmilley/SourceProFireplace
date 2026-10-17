@@ -23,7 +23,7 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
-        cache: true
+        cache: true # Enforces global SDK environment caching
         cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
 
     - name: Automatically Rebuild Clean Project Architecture
@@ -60,6 +60,14 @@ jobs:
         </dict>
         </plist>
         INNER_EOF
+
+    - name: Cache Pub Dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.pub-cache
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
 
     - name: Fetch Library Dependencies
       run: flutter pub get
